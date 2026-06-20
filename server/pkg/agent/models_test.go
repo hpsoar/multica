@@ -11,7 +11,7 @@ import (
 
 func TestListModelsStaticProviders(t *testing.T) {
 	ctx := context.Background()
-	for _, provider := range []string{"claude", "codex", "gemini", "cursor"} {
+	for _, provider := range []string{"claude", "codex", "gemini", "cursor", "mimo"} {
 		got, err := ListModels(ctx, provider, "")
 		if err != nil {
 			t.Fatalf("ListModels(%q) error: %v", provider, err)
@@ -27,6 +27,24 @@ func TestListModelsStaticProviders(t *testing.T) {
 				t.Errorf("ListModels(%q)[%d] has empty Label", provider, i)
 			}
 		}
+	}
+}
+
+func TestMimoModelsFallsBackToStatic(t *testing.T) {
+	ctx := context.Background()
+	modelCacheMu.Lock()
+	delete(modelCache, "mimo:/nonexistent/mimo")
+	modelCacheMu.Unlock()
+
+	got, err := ListModels(ctx, "mimo", "/nonexistent/mimo")
+	if err != nil {
+		t.Fatalf("ListModels(mimo) error: %v", err)
+	}
+	if len(got) != 1 {
+		t.Fatalf("expected one static fallback model, got %+v", got)
+	}
+	if got[0].ID != "mimo/mimo-auto" || !got[0].Default {
+		t.Fatalf("unexpected fallback model: %+v", got[0])
 	}
 }
 

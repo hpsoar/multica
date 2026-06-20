@@ -34,12 +34,13 @@ func TestSupportedTypesLockstepWithNew(t *testing.T) {
 }
 
 // TestSupportedTypesMatchesMigrationWhitelist pins the exact set so a drift
-// from the runtime_profile.protocol_family CHECK in migration 120 fails loudly.
+// from the runtime_profile.protocol_family CHECK migrations fails loudly.
 func TestSupportedTypesMatchesMigrationWhitelist(t *testing.T) {
 	want := map[string]bool{
 		"claude": true, "codebuddy": true, "codex": true, "copilot": true,
 		"opencode": true, "openclaw": true, "hermes": true, "gemini": true,
 		"pi": true, "cursor": true, "kimi": true, "kiro": true, "antigravity": true,
+		"mimo": true,
 	}
 	if len(SupportedTypes) != len(want) {
 		t.Fatalf("SupportedTypes has %d entries, migration whitelist has %d; keep them in lockstep", len(SupportedTypes), len(want))

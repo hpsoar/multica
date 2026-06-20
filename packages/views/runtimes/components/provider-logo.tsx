@@ -172,6 +172,19 @@ function KimiLogo({ className }: { className: string }) {
   );
 }
 
+// MiMo Code (Xiaomi) — compact "M" mark in Xiaomi orange.
+function MimoLogo({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect width="24" height="24" rx="5" fill="#FF6900" />
+      <path
+        d="M5.4 17.6V6.4h2.7l3.9 5.5 3.9-5.5h2.7v11.2h-2.7v-6.9l-3.1 4.3h-1.6l-3.1-4.3v6.9H5.4Z"
+        fill="white"
+      />
+    </svg>
+  );
+}
+
 // Gemini (Google) — official "Google Gemini" mark from Simple Icons
 // (simpleicons.org/icons/googlegemini.svg, CC0 1.0). Rendered in the
 // Simple Icons brand color (#8E75B2), matching the pattern used by the
@@ -268,6 +281,8 @@ export function ProviderLogo({
       return <KimiLogo className={className} />;
     case "kiro":
       return <KiroLogo className={className} />;
+    case "mimo":
+      return <MimoLogo className={className} />;
     case "gemini":
       return <GeminiLogo className={className} />;
     case "antigravity":

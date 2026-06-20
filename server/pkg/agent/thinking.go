@@ -11,8 +11,8 @@ import (
 )
 
 // thinking.go discovers per-model reasoning/effort catalogs for the
-// claude, codex, and opencode backends so the daemon can advertise them to the
-// UI without hard-coding (and getting wrong) what's installed locally.
+// claude, codex, opencode, and mimo backends so the daemon can advertise them
+// to the UI without hard-coding (and getting wrong) what's installed locally.
 //
 // MUL-2339: we deliberately do not flatten Claude's `low|medium|high|
 // xhigh|max` and Codex's `none|minimal|low|medium|high|xhigh` onto a
@@ -571,9 +571,9 @@ func anyModelSupportsThinkingValue(models []Model, value string) bool {
 }
 
 // providerThinkingEnums is the server-side accept-list for runtimes with a
-// fixed reasoning-effort vocabulary. OpenCode is deliberately absent because
-// its `--variant` values come from the local model catalog and custom
-// opencode.json entries can define additional variant names.
+// fixed reasoning-effort vocabulary. OpenCode and MiMo are deliberately absent
+// because their `--variant` values come from the local model catalog and custom
+// config entries can define additional variant names.
 //
 // The server doesn't have local CLI binaries, so it cannot do per-model
 // discovery the way the daemon can; what it CAN do is reject values that are
@@ -615,8 +615,8 @@ var providerThinkingEnums = map[string]map[string]bool{
 // IsKnownThinkingValue reports whether `value` is a recognised effort
 // token for the given provider. Empty string is always accepted (means
 // "use runtime default"). Unknown providers (no thinking concept) accept
-// only empty; OpenCode accepts well-formed variant names because its local
-// catalog can be extended by opencode.json.
+// only empty; OpenCode and MiMo accept well-formed variant names because their
+// local catalogs can be extended by config.
 //
 // This is the cheap synchronous gate the server uses on CreateAgent /
 // UpdateAgent. Unlike ValidateThinkingLevel it does NOT consult the live
@@ -625,7 +625,7 @@ func IsKnownThinkingValue(providerType, value string) bool {
 	if value == "" {
 		return true
 	}
-	if providerType == "opencode" {
+	if providerType == "opencode" || providerType == "mimo" {
 		return isValidOpenCodeVariantName(value)
 	}
 	enum, ok := providerThinkingEnums[providerType]

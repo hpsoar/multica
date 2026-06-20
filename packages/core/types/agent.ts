@@ -69,6 +69,7 @@ export const RUNTIME_PROFILE_PROTOCOL_FAMILIES = [
   "kimi",
   "kiro",
   "antigravity",
+  "mimo",
 ] as const;
 
 export type RuntimeProtocolFamily =
@@ -649,7 +650,7 @@ export interface RuntimeModel {
   default?: boolean;
   /**
    * Per-model reasoning/effort catalog discovered by the daemon. Currently
-   * populated for claude, codex, and opencode runtimes; omitted (or undefined)
+   * populated for claude, codex, opencode, and mimo runtimes; omitted (or undefined)
    * for every other provider, which the UI treats as "no thinking-level
    * picker for this model". See MUL-2339.
    */

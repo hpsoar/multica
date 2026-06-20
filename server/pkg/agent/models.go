@@ -80,11 +80,11 @@ const modelCacheTTL = 60 * time.Second
 
 // ListModels returns the models supported by the given agent provider.
 // For providers with a known static catalog it returns the baked-in
-// list; for providers with a CLI discovery mechanism (opencode, pi,
+// list; for providers with a CLI discovery mechanism (opencode, mimo, pi,
 // openclaw) it shells out with caching and falls back to the static
 // list on failure.
 //
-// For claude, codex, and opencode, the catalog is augmented with per-model
+// For claude, codex, opencode, and mimo, the catalog is augmented with per-model
 // thinking-level options discovered from the local CLI. Discovery failures
 // silently leave Thinking == nil on each entry, which the UI treats as
 // "no picker for this model" rather than blocking model selection.
@@ -129,6 +129,10 @@ func ListModels(ctx context.Context, providerType, executablePath string) ([]Mod
 	case "kiro":
 		return cachedDiscovery(providerType, func() ([]Model, error) {
 			return discoverKiroModels(ctx, executablePath)
+		})
+	case "mimo":
+		return cachedDiscovery(discoveryCacheKey(providerType, executablePath), func() ([]Model, error) {
+			return discoverMimoModels(ctx, executablePath)
 		})
 	case "opencode":
 		return cachedDiscovery(discoveryCacheKey(providerType, executablePath), func() ([]Model, error) {
@@ -341,6 +345,12 @@ func cursorStaticModels() []Model {
 	}
 }
 
+func mimoStaticModels() []Model {
+	return []Model{
+		{ID: "mimo/mimo-auto", Label: "mimo/mimo-auto", Provider: "mimo", Default: true},
+	}
+}
+
 // copilotStaticModels — fallback used when GitHub Copilot CLI is
 // missing on PATH or the user hasn't logged in. Normal operation
 // goes through discoverCopilotModels(), which speaks ACP to the
@@ -521,6 +531,48 @@ func parseOpenCodeModelIDLine(line string) string {
 		return ""
 	}
 	return id
+}
+
+// discoverMimoModels runs `mimo models --verbose` and parses its catalog.
+// MiMo Code's run protocol and model-list output are OpenCode-compatible
+// enough for the same parser, but we keep a MiMo-specific wrapper so fallback
+// defaults and cache keys stay provider-local.
+func discoverMimoModels(ctx context.Context, executablePath string) ([]Model, error) {
+	if executablePath == "" {
+		executablePath = "mimo"
+	}
+	if _, err := exec.LookPath(executablePath); err != nil {
+		return mimoStaticModels(), nil
+	}
+
+	runCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(runCtx, executablePath, "models", "--verbose")
+	hideAgentWindow(cmd)
+	out, _ := cmd.Output()
+	models := parseOpenCodeModels(string(out))
+	if len(models) == 0 {
+		cmd = exec.CommandContext(runCtx, executablePath, "models")
+		hideAgentWindow(cmd)
+		out, _ = cmd.Output()
+		models = parseOpenCodeModels(string(out))
+	}
+	if len(models) == 0 {
+		return mimoStaticModels(), nil
+	}
+
+	defaultSeen := false
+	for i := range models {
+		if models[i].ID == "mimo/mimo-auto" {
+			models[i].Default = true
+			defaultSeen = true
+		}
+	}
+	if !defaultSeen {
+		models = append([]Model{}, models...)
+		models = append(mimoStaticModels(), models...)
+	}
+	return models, nil
 }
 
 func collectOpenCodeModelJSON(lines []string, start int) ([]byte, int) {
