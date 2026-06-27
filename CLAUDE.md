@@ -42,7 +42,14 @@ Keep server state and client state separate.
 - Zustand selectors must return stable references. Do not return freshly allocated objects/arrays from selectors without shallow comparison.
 - Hooks that need workspace context should accept `wsId`; do not call `useWorkspaceId()` internally unless the hook is guaranteed to run under the provider.
 
-## Package Boundaries
+- `server/` — Go backend (Chi router, sqlc for DB, gorilla/websocket for real-time)
+- `apps/web/` — Next.js frontend (App Router)
+- `apps/desktop/` — Electron desktop app (electron-vite)
+- `apps/mobile/` — Expo / React Native mobile app for iOS + Android. See `apps/mobile/CLAUDE.md`.
+- `packages/core/` — Headless business logic (zero react-dom)
+- `packages/ui/` — Atomic UI components (zero business logic)
+- `packages/views/` — Shared business pages/components (zero next/* imports, zero react-router imports)
+- `packages/tsconfig/` — Shared TypeScript configuration
 
 These are hard constraints:
 
@@ -78,16 +85,47 @@ make stop             # stop app processes for this checkout
 make server           # run Go server only
 make daemon           # run local daemon
 make test             # Go tests
-make sqlc             # regenerate sqlc code after SQL changes
-pnpm install
-pnpm dev:web
-pnpm dev:desktop
-pnpm build
-pnpm typecheck
-pnpm lint
-pnpm test             # TS/Vitest tests through Turborepo
-pnpm exec playwright test
-pnpm ui:add badge     # shadcn/Base UI component into packages/ui
+make sqlc             # Regenerate sqlc code after editing SQL in server/pkg/db/queries/
+make migrate-up       # Run database migrations
+make migrate-down     # Rollback migrations
+
+# Run a single TS test (works for any package with a test script)
+pnpm --filter @multica/views exec vitest run auth/login-page.test.tsx
+pnpm --filter @multica/core exec vitest run runtimes/version.test.ts
+pnpm --filter @multica/web exec vitest run app/\(auth\)/login/page.test.tsx
+
+# Run a single Go test
+cd server && go test ./internal/handler/ -run TestName
+
+# Run a single E2E test (requires backend + frontend running)
+pnpm exec playwright test e2e/tests/specific-test.spec.ts
+
+# Mobile (Expo) — two environments only: dev and staging
+pnpm dev:mobile                  # Metro, dev env       (reads apps/mobile/.env.development.local)
+pnpm dev:mobile:staging          # Metro, staging env   (reads apps/mobile/.env.staging)
+pnpm ios:mobile                  # Native build + install dev-client to iOS Simulator, dev env
+pnpm ios:mobile:staging          # Native build + install dev-client to iOS Simulator, staging env
+pnpm ios:mobile:device           # Native build + install dev-client to USB iPhone, dev env
+pnpm ios:mobile:device:staging   # Native build + install dev-client to USB iPhone, staging env
+pnpm -C apps/mobile android                 # Native build + install debug app to Android emulator/device, dev env
+pnpm -C apps/mobile android:staging         # Native build + install debug app to Android emulator/device, staging env
+pnpm -C apps/mobile android:device          # Native build + install debug app to a specific Android device, dev env
+pnpm -C apps/mobile android:device:staging  # Native build + install debug app to a specific Android device, staging env
+pnpm -C apps/mobile android:staging:release # Native release APK build / install for Android, staging env
+# Daily flow: run `pnpm dev:mobile:staging` (or :dev). Re-run `ios:mobile*` / `pnpm -C apps/mobile android*`
+# when native code or any expo-*/react-native-* dependency changes (lockfile drift counts).
+
+# Desktop build & package
+pnpm --filter @multica/desktop build      # Compile TS → JS (reads .env.production)
+pnpm --filter @multica/desktop package    # Package into .app/.dmg/.exe (current platform only)
+
+# shadcn — config lives in packages/ui/components.json (Base UI variant, base-nova style)
+pnpm ui:add badge                # Adds component to packages/ui/components/ui/
+
+# Infrastructure
+make db-up            # Start shared PostgreSQL (pgvector/pg17 image)
+make db-down          # Stop shared PostgreSQL
+make db-reset         # Drop + recreate current env's DB, then re-run migrations (local only; stop backend first)
 ```
 
 Worktrees share one PostgreSQL container and get isolated DB names/ports via `.env.worktree`. `make dev` auto-detects this. For manual setup use `make worktree-env`, `make setup-worktree`, and `make start-worktree`. `pnpm dev:desktop` additionally self-isolates per worktree (its own renderer port + app name) automatically, independent of `.env.worktree`.
