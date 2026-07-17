@@ -25,6 +25,7 @@ import (
 // Kimi:        skills → {workDir}/.kimi/skills/{name}/SKILL.md  (native discovery)
 // Kiro:        skills → {workDir}/.kiro/skills/{name}/SKILL.md  (native discovery)
 // Antigravity: skills → {workDir}/.agents/skills/{name}/SKILL.md  (native discovery — see https://antigravity.google/docs/gcli-migration "Workspace skills")
+// AtomCode:    skills → {workDir}/.atomcode/skills/{name}/SKILL.md  (native discovery)
 // Default:     skills → {workDir}/.agent_context/skills/{name}/SKILL.md
 //
 // manifest, when non-nil, is populated with every file we created and every
@@ -218,6 +219,10 @@ func skillsDirPath(workDir, provider string) string {
 		// workspace skill layout; see https://antigravity.google/docs/gcli-migration
 		// under "Workspace skills".
 		return filepath.Join(workDir, ".agents", "skills")
+	case "atomcode":
+		// AtomCode uses .atomcode/ as its project/user extension root and
+		// auto-discovers skills under its skills subdirectory.
+		return filepath.Join(workDir, ".atomcode", "skills")
 	default:
 		// Fallback: write to .agent_context/skills/ (referenced by meta config).
 		return filepath.Join(workDir, ".agent_context", "skills")

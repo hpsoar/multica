@@ -1,6 +1,6 @@
 // Package agent provides a unified interface for executing prompts via
 // coding agents (Claude Code, CodeBuddy, Codex, Copilot, OpenCode, OpenClaw,
-// Hermes, Gemini, Pi, Cursor, Kimi, Kiro, Antigravity, MiMo). It mirrors the happy-cli
+// Hermes, Gemini, Pi, Cursor, Kimi, Kiro, Antigravity, MiMo, AtomCode). It mirrors the happy-cli
 // AgentBackend pattern, translated to idiomatic Go.
 package agent
 
@@ -127,13 +127,13 @@ type Result struct {
 
 // Config configures a Backend instance.
 type Config struct {
-	ExecutablePath string            // path to CLI binary (claude, codebuddy, codex, copilot, opencode, openclaw, hermes, gemini, pi, cursor, kimi, kiro-cli, agy, mimo)
+	ExecutablePath string            // path to CLI binary (claude, codebuddy, codex, copilot, opencode, openclaw, hermes, gemini, pi, cursor, kimi, kiro-cli, agy, mimo, atomcode)
 	Env            map[string]string // extra environment variables
 	Logger         *slog.Logger
 }
 
 // New creates a Backend for the given agent type.
-// Supported types: "claude", "codebuddy", "codex", "copilot", "opencode", "openclaw", "hermes", "gemini", "pi", "cursor", "kimi", "kiro", "antigravity", "mimo".
+// Supported types: "claude", "codebuddy", "codex", "copilot", "opencode", "openclaw", "hermes", "gemini", "pi", "cursor", "kimi", "kiro", "antigravity", "mimo", "atomcode".
 //
 // SupportedTypes is the canonical whitelist of agent types New can construct.
 // It MUST stay in lockstep with the switch in New below and the
@@ -154,6 +154,7 @@ var SupportedTypes = []string{
 	"kiro",
 	"antigravity",
 	"mimo",
+	"atomcode",
 }
 
 // IsSupportedType reports whether agentType is in the SupportedTypes whitelist.
@@ -202,8 +203,10 @@ func New(agentType string, cfg Config) (Backend, error) {
 		return &antigravityBackend{cfg: cfg}, nil
 	case "mimo":
 		return &mimoBackend{cfg: cfg}, nil
+	case "atomcode":
+		return &atomcodeBackend{cfg: cfg}, nil
 	default:
-		return nil, fmt.Errorf("unknown agent type: %q (supported: claude, codebuddy, codex, copilot, opencode, openclaw, hermes, gemini, pi, cursor, kimi, kiro, antigravity, mimo)", agentType)
+		return nil, fmt.Errorf("unknown agent type: %q (supported: claude, codebuddy, codex, copilot, opencode, openclaw, hermes, gemini, pi, cursor, kimi, kiro, antigravity, mimo, atomcode)", agentType)
 	}
 }
 
@@ -220,6 +223,7 @@ func DetectVersion(ctx context.Context, executablePath string) (string, error) {
 // about *what* users are extending, not a dump of the full command line.
 var launchHeaders = map[string]string{
 	"antigravity": "agy -p (print mode)",
+	"atomcode":    "atomcode acp",
 	"claude":      "claude (stream-json)",
 	"codebuddy":   "codebuddy (stream-json)",
 	"codex":       "codex app-server",

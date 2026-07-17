@@ -985,6 +985,19 @@ func TestAntigravityModelSelectionSupported(t *testing.T) {
 	}
 }
 
+func TestAtomcodeModelSelectionManagedByRuntime(t *testing.T) {
+	if ModelSelectionSupported("atomcode") {
+		t.Error("atomcode should report model selection as managed by runtime")
+	}
+	got, err := ListModels(context.Background(), "atomcode", "/nonexistent/atomcode")
+	if err != nil {
+		t.Fatalf("ListModels(atomcode) error: %v", err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("ListModels(atomcode) = %+v, want empty list", got)
+	}
+}
+
 // TestParseAntigravityModels covers the `agy models` line-per-name format:
 // each non-blank line becomes a Model whose ID and Label are the verbatim
 // display string `--model` expects, duplicates collapse, and blanks drop.

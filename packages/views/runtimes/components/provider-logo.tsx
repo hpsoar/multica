@@ -185,6 +185,31 @@ function MimoLogo({ className }: { className: string }) {
   );
 }
 
+// AtomCode — compact atom-style mark for the AtomGit AtomCode runtime.
+function AtomCodeLogo({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect width="24" height="24" rx="5" fill="#0F766E" />
+      <circle cx="12" cy="12" r="2.1" fill="#FFFFFF" />
+      <path
+        d="M4.7 12c0-2.1 3.3-3.8 7.3-3.8s7.3 1.7 7.3 3.8-3.3 3.8-7.3 3.8S4.7 14.1 4.7 12Z"
+        stroke="#FFFFFF"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M8.4 5.6c1.8-1 4.9 1.4 6.9 4.9s2.4 7.4.6 8.4-4.9-1.4-6.9-4.9S6.6 6.6 8.4 5.6Z"
+        stroke="#FFFFFF"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M15.6 5.6c1.8 1 .9 4.9-1.1 8.4s-5.1 5.9-6.9 4.9-.9-4.9 1.1-8.4 5.1-5.9 6.9-4.9Z"
+        stroke="#FFFFFF"
+        strokeWidth="1.4"
+      />
+    </svg>
+  );
+}
+
 // Gemini (Google) — official "Google Gemini" mark from Simple Icons
 // (simpleicons.org/icons/googlegemini.svg, CC0 1.0). Rendered in the
 // Simple Icons brand color (#8E75B2), matching the pattern used by the
@@ -259,6 +284,8 @@ export function ProviderLogo({
   className?: string;
 }) {
   switch (provider) {
+    case "atomcode":
+      return <AtomCodeLogo className={className} />;
     case "claude":
       return <ClaudeLogo className={className} />;
     case "codebuddy":

@@ -272,6 +272,7 @@ func TestProviderNeedsInlineSystemPrompt(t *testing.T) {
 		{provider: "kiro", want: true},
 		{provider: "kimi", want: true},
 		{provider: "mimo", want: false},
+		{provider: "atomcode", want: false},
 		{provider: "codex", want: false},
 		{provider: "claude", want: false},
 	}

@@ -110,6 +110,8 @@ func ListModels(ctx context.Context, providerType, executablePath string) ([]Mod
 		return cachedDiscovery(providerType, func() ([]Model, error) {
 			return discoverAntigravityModels(ctx, executablePath)
 		})
+	case "atomcode":
+		return nil, nil
 	case "cursor":
 		return cachedDiscovery(providerType, func() ([]Model, error) {
 			return discoverCursorModels(ctx, executablePath)
@@ -173,6 +175,9 @@ func ListModels(ctx context.Context, providerType, executablePath string) ([]Mod
 // render a disabled "Managed by runtime" picker instead of an empty
 // dropdown plus a silently-ignored manual-entry field.
 func ModelSelectionSupported(providerType string) bool {
+	if providerType == "atomcode" {
+		return false
+	}
 	return true
 }
 
