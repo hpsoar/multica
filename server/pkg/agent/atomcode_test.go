@@ -141,6 +141,13 @@ while IFS= read -r line; do
       printf '{"jsonrpc":"2.0","id":%s,"result":{"protocolVersion":1,"agentCapabilities":{"loadSession":false}}}\n' "$id"
       ;;
     *'"method":"session/new"'*)
+      case "$line" in
+        *'"mcpServers":[]'*) ;;
+        *)
+          printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32602,"message":"Invalid params","data":{"error":"missing field mcpServers"}}}\n' "$id"
+          continue
+          ;;
+      esac
       printf '{"jsonrpc":"2.0","id":%s,"result":{"sessionId":"acp-1"}}\n' "$id"
       ;;
     *'"method":"session/prompt"'*)

@@ -196,7 +196,8 @@ func (b *atomcodeBackend) Execute(ctx context.Context, prompt string, opts ExecO
 			cwd = "."
 		}
 		result, err := c.request(runCtx, "session/new", map[string]any{
-			"cwd": cwd,
+			"cwd":        cwd,
+			"mcpServers": []any{},
 		})
 		if err != nil {
 			finalStatus = "failed"
